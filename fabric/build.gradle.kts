@@ -1,13 +1,33 @@
 import me.modmuss50.mpp.platforms.modrinth.ModrinthEnvironment
 import xyz.jpenilla.resourcefactory.fabric.Environment
-import java.util.function.Predicate
-import kotlin.io.path.invariantSeparatorsPathString
 
 plugins {
   id("carbon.shadow-platform")
-  id("quiet-fabric-loom")
+  id("net.fabricmc.fabric-loom") version "1.17-SNAPSHOT"
   alias(libs.plugins.resource.factory.fabric.convention)
 }
+
+repositories {
+  maven("https://repo.jpenilla.xyz/snapshots/") {
+    mavenContent {
+      snapshotsOnly()
+      includeModuleByRegex("de\\.hexaoxi", "messenger-.*")
+      includeModule("com.seiama", "registry")
+    }
+  }
+}
+
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+  }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  options.release = 25
+}
+
 
 val shade: Configuration by configurations.creating
 
@@ -17,10 +37,9 @@ configurations.implementation {
 
 dependencies {
   minecraft(libs.fabricMinecraft)
-  mappings(loom.officialMojangMappings())
-  modImplementation(libs.fabricLoader)
-  modImplementation(libs.fabricApi)
-  modRuntimeOnly(libs.fabricApiDeprecated) // LuckPerms needs to work at dev time
+  implementation(libs.fabricLoader)
+  implementation(libs.fabricApi)
+  runtimeOnly(libs.fabricApiDeprecated) // LuckPerms needs to work at dev time
 
   shade(projects.carbonchatCommon) {
     exclude("net.kyori", "adventure-api")
@@ -33,23 +52,25 @@ dependencies {
     exclude("io.leangen.geantyref")
   }
 
-  modImplementation(libs.cloudFabric) {
+  implementation(libs.cloudFabric) {
     exclude("net.fabricmc.fabric-api")
   }
   include(libs.cloudFabric)
-  implementation(libs.cloudSigned)
-  include(libs.cloudSigned)
-  modImplementation(libs.fabricPermissionsApi)
+  shade(libs.cloudSigned) {
+    exclude("org.incendo", "cloud-core")
+    exclude("org.incendo", "cloud-services")
+  }
+  implementation(libs.fabricPermissionsApi)
   include(libs.fabricPermissionsApi)
 
-  modImplementation(libs.adventurePlatformFabric)
+  implementation(libs.adventurePlatformFabric)
 
-  modImplementation(libs.miniplaceholders)
+  implementation(libs.miniplaceholders)
 
   runtimeDownload(libs.mysql)
   include(libs.jarRelocator)
-  runtimeOnly(libs.jarRelocator) {
-    isTransitive = false
+  shade(libs.jarRelocator) {
+    exclude(group = "org.ow2.asm")
   }
   runtimeDownload(libs.checkerQual)
 }
@@ -79,9 +100,7 @@ fabricModJson {
   suggests("miniplaceholders", "*")
 }
 
-carbonPlatform {
-  productionJar = tasks.remapJar.flatMap { it.archiveFile }
-}
+
 
 tasks {
   shadowJar {
@@ -99,10 +118,7 @@ tasks {
 
   runServer {
     dependsOn(shadowJar)
-    classpathFilter = Predicate {
-      val s = it.toPath().toAbsolutePath().invariantSeparatorsPathString
-      !s.contains("build/libs") && !s.contains("build/classes") && !s.contains("build/resources")
-    }
+
     doFirst {
       val jar = shadowJar.get().archiveFile.get().asFile
       val mods = file("run/mods")

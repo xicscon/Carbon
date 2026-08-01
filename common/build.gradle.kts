@@ -2,6 +2,16 @@ plugins {
   id("carbon.base-conventions")
 }
 
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+  }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  options.release = 25
+}
+
 dependencies {
   api(projects.carbonchatApi)
   api(libs.gremlin.runtime)
@@ -76,3 +86,4 @@ dependencies {
   // Plugins
   compileOnly(libs.miniplaceholders)
 }
+

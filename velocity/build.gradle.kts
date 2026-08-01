@@ -26,6 +26,18 @@ dependencies {
   implementation(libs.assistedInject)
 }
 
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+  }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  options.release = 25
+}
+
+
 velocityPluginJson {
   id = rootProject.name.lowercase()
   main = "net.draycia.carbon.velocity.CarbonVelocityBootstrap"

@@ -10,6 +10,7 @@ plugins {
   id("carbon.configurable-plugins")
 }
 
+
 dependencies {
   implementation(projects.carbonchatCommon)
 
@@ -51,6 +52,18 @@ configurablePlugins {
   dependency(libs.plotsquaredbom)
   dependency(libs.plotsquaredcore)
 }
+
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+  }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+  options.release = 25
+}
+
 
 tasks {
   shadowJar {

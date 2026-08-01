@@ -38,7 +38,7 @@ import net.kyori.adventure.audience.ForwardingAudience;
 import net.kyori.adventure.identity.Identity;
 import net.kyori.adventure.platform.modcommon.MinecraftServerAudiences;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -169,7 +169,7 @@ public class CarbonPlayerFabric extends WrappedCarbonPlayer implements Forwardin
                 Component.text("]")
             )
             .hoverEvent(item)
-            .colorIfAbsent(TextColor.color(item.getRarity().color().getColor()));
+            .colorIfAbsent(NamedTextColor.NAMES.value(item.getRarity().color().name().toLowerCase(Locale.ROOT)));
     }
 
     @Override
